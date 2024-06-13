@@ -74,3 +74,33 @@ const logoutUser = async (req, res) => {
 	//logout success response
 	res.status(204).send();
 };
+
+const getCurrentUsers = async (req, res) => {
+	const { email, subscription } = req.user;
+
+	res.json({
+		email,
+		subscription,
+	});
+};
+
+const updateUserSubscription = async (req, res) => {
+	const { error } = subscriptionValidation.validate(req.body);
+	if (error) {
+		throw httpError(400, error.message);
+	}
+
+	const { _id } = req.user;
+
+	const updatedUSer = await Ussr.findByIdAndUpdate(_id, req.body, {
+		new: true,
+	});
+
+	res.json({
+		email: updatedUSer.email,
+		subscription: updatedUSer.subscription,
+	});
+};
+
+//prettier-ignore
+export { signupUser, loginUser, logoutUser, getCurrentUsers, updateUserSubscription };
