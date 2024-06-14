@@ -2,8 +2,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import { User } from '../models/usersModel.js';
-//prettier-ignore
-import { signupValidation, subscriptionValidation } from '../validations/validation.js';
+// prettier-ignore
+import { signupValidation, subscriptionValidation } from "../validations/validation.js";
 import { httpError } from '../helpers/httpError.js';
 
 const { SECRET_KEY } = process.env;
@@ -11,13 +11,13 @@ const { SECRET_KEY } = process.env;
 const signupUser = async (req, res) => {
 	const { email, password } = req.body;
 
-	//registration validation error
+	//  Registration validation error
 	const { error } = signupValidation.validate(req.body);
 	if (error) {
 		throw httpError(400, error.message);
 	}
 
-	//registration conflict error
+	// Registration conflict error
 	const user = await User.findOne({ email });
 	if (user) {
 		throw httpError(409, 'Email in Use');
@@ -27,7 +27,7 @@ const signupUser = async (req, res) => {
 
 	const newUser = await User.create({ email, password: hashPassword });
 
-	//registration success response
+	// Registration success response
 	res.status(201).json({
 		user: {
 			email: newUser.email,
@@ -39,16 +39,22 @@ const signupUser = async (req, res) => {
 const loginUser = async (req, res) => {
 	const { email, password } = req.body;
 
-	//login validation
+	//  Login validation error
 	const { error } = signupValidation.validate(req.body);
 	if (error) {
 		throw httpError(401, error.message);
 	}
 
-	//login auth error(password)
+	// Login auth error (email)
+	const user = await User.findOne({ email });
+	if (!user) {
+		throw httpError(401, 'Email or password is wrong');
+	}
+
+	// Login auth error (password)
 	const isPasswordValid = await bcrypt.compare(password, user.password);
 	if (!isPasswordValid) {
-		throw httpError(401, 'Email or Password is Wrong');
+		throw httpError(401, 'Email or password is wrong');
 	}
 
 	const payload = { id: user._id };
@@ -56,7 +62,7 @@ const loginUser = async (req, res) => {
 
 	await User.findByIdAndUpdate(user._id, { token });
 
-	//login success response
+	//   Login success response
 	res.status(200).json({
 		token: token,
 		user: {
@@ -69,9 +75,10 @@ const loginUser = async (req, res) => {
 const logoutUser = async (req, res) => {
 	const { _id } = req.user;
 
+	// Logout unauthorized error (setting token to empty string will remove token -> will logout)
 	await User.findByIdAndUpdate(_id, { token: '' });
 
-	//logout success response
+	//   Logout success response
 	res.status(204).send();
 };
 
@@ -92,15 +99,15 @@ const updateUserSubscription = async (req, res) => {
 
 	const { _id } = req.user;
 
-	const updatedUSer = await Ussr.findByIdAndUpdate(_id, req.body, {
+	const updatedUser = await User.findByIdAndUpdate(_id, req.body, {
 		new: true,
 	});
 
 	res.json({
-		email: updatedUSer.email,
-		subscription: updatedUSer.subscription,
+		email: updatedUser.email,
+		subscription: updatedUser.subscription,
 	});
 };
 
-//prettier-ignore
+// prettier-ignore
 export { signupUser, loginUser, logoutUser, getCurrentUsers, updateUserSubscription };

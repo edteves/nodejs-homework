@@ -3,7 +3,7 @@ import { Contact } from '../models/contactsModel.js';
 import { contactValidation, favoriteValidation } from "../validations/validation.js";
 import { httpError } from '../helpers/httpError.js';
 
-const getAllContacts = async (_req, res) => {
+const getAllContacts = async (req, res) => {
 	const { page = 1, limit = 20, favorite } = req.query;
 	const query = favorite ? { favorite: true } : {};
 
@@ -16,7 +16,6 @@ const getAllContacts = async (_req, res) => {
 
 const getContactById = async (req, res) => {
 	const { contactId } = req.params;
-
 	const result = await Contact.findById(contactId);
 
 	if (!result) {
@@ -27,10 +26,11 @@ const getContactById = async (req, res) => {
 };
 
 const addContact = async (req, res) => {
+	// Preventing lack of necessary data for contacts (check validations folder)
 	const { error } = contactValidation.validate(req.body);
 
 	if (error) {
-		throw httpError(400, 'missing required field');
+		throw httpError(400, 'missing required fields');
 	}
 
 	const result = await Contact.create(req.body);
@@ -40,8 +40,6 @@ const addContact = async (req, res) => {
 
 const deleteContactById = async (req, res) => {
 	const { contactId } = req.params;
-
-	// REFERENCE: https://mongoosejs.com/docs/api/model.html#Model.findByIdAndDelete()
 	const result = await Contact.findByIdAndDelete(contactId);
 
 	if (!result) {
