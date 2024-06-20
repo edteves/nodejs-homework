@@ -1,4 +1,6 @@
 import bcrypt from 'bcrypt';
+import gravatar from 'gravatar';
+import jimp from 'jimp';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import { User } from '../models/usersModel.js';
